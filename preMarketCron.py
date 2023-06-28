@@ -31,10 +31,10 @@ def convert24(str1):
         return str(int(str1[:2]) + 12) + str1[2:8]
 
 
-def is_time_before_market_open(str1):
-    # Checking if time is before the market open on the EST
-    if int(str1[0:2]) < 9:
-        if (int(str1[3:5])) < 30:
+def is_time_before_market_close(str1):
+    # Checking if time is before close
+    if int(str1[0:2]) < 16:
+        if (int(str1[3:5])) < 1:
             return bool(1)
     return bool(0)
 
@@ -73,7 +73,7 @@ for file_name, news_table in news_tables.items():
                 date_datetime = convert_string_to_datetime(date)
             tick = file_name.split('_')[0]
             twenty_four_hour_time = convert24(time).replace('PM', '')
-            if is_time_before_market_open(twenty_four_hour_time):
+            if is_time_before_market_close(twenty_four_hour_time):
                 news_list.append([tick, date_datetime, time, text])
             else:
                 next_day = date_datetime + timedelta(days=1)
