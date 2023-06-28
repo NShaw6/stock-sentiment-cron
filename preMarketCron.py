@@ -1,10 +1,13 @@
 from datetime import timedelta, datetime
 from urllib.request import urlopen, Request
 
+import localShared
 import pandas as pd
 from bs4 import BeautifulSoup
 from dateutil.utils import today
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
+import nltk
+nltk.download('vader_lexicon')
 
 
 def convert24(str1):
@@ -44,7 +47,7 @@ def convert_string_to_datetime(str1):
 web_url = 'https://finviz.com/quote.ashx?t='
 
 news_tables = {}
-tickers = ['TSLA', 'CVNA', 'META', 'PTON', 'HAL', 'MARA', 'SQ', 'ABNB', 'CAG', 'NKE']
+tickers = localShared.getTickers()
 
 for tick in tickers:
     url = web_url + tick
@@ -85,8 +88,8 @@ news_df = pd.DataFrame(news_list, columns=columns)
 scores = news_df['headline'].apply(vader.polarity_scores).tolist()
 scores_df = pd.DataFrame(scores)
 news_df = news_df.join(scores_df, rsuffix='_right')
-# today_date = today()
-# news_df = news_df.query("date == @today_date")
+today_date = today()
+news_df = news_df.query("date == @today_date")
 news_df['date'] = pd.to_datetime(news_df.date).dt.date
 mean_scores = news_df.groupby(['ticker', 'date']).mean()
 email_content = mean_scores.compound.to_string()
