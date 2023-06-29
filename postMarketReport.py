@@ -30,19 +30,7 @@ def getPercentageIncreaseOrDecrease(open, close):
     else: 
         return 0.0
 
-for ticker in tickers: 
-    yahooInfo = yf.Ticker(str(ticker))
-    openValue = yahooInfo.info['open']
-    closeValue = yahooInfo.info['currentPrice']
-    print (ticker + ' ' +  str(openValue)  + ' ' + str(closeValue) + ' ' + str(getPercentageIncreaseOrDecrease(openValue, closeValue)))
-    currentNumOfArticles = 0
-    totalSentiment = 0 
-    for article in yahooInfo.news:
-        currentNumOfArticles = currentNumOfArticles + 1
-        sid_obj = SentimentIntensityAnalyzer()
-        sentiment_dict = sid_obj.polarity_scores(article['title'])
-        totalSentiment = totalSentiment + sentiment_dict['compound']
-    print(totalSentiment / currentNumOfArticles)
+
         
 
 

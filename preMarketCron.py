@@ -8,6 +8,8 @@ from dateutil.utils import today
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 import nltk
 nltk.download('vader_lexicon')
+import yfinance as yf
+
 
 
 def convert24(str1):
@@ -59,27 +61,34 @@ for tick in tickers:
 
 news_list = []
 
-for file_name, news_table in news_tables.items():
-    for i in news_table.findAll('tr'):
-        try:
-            getattr(i.a, "get_text")
-            text = i.a.get_text()
-            date_scrape = i.td.text.split()
-            if len(date_scrape) == 1:
-                time = date_scrape[0]
-            else:
-                date = date_scrape[0]
-                time = date_scrape[1]
-                date_datetime = convert_string_to_datetime(date)
-            tick = file_name.split('_')[0]
-            twenty_four_hour_time = convert24(time).replace('PM', '')
-            if is_time_before_market_close(twenty_four_hour_time):
-                news_list.append([tick, date_datetime, time, text])
-            else:
-                next_day = date_datetime + timedelta(days=1)
-                news_list.append([tick, next_day, time, text])
-        except AttributeError:
-            continue
+# for file_name, news_table in news_tables.items():
+#     for i in news_table.findAll('tr'):
+#         try:
+#             getattr(i.a, "get_text")
+#             text = i.a.get_text()
+#             date_scrape = i.td.text.split()
+#             if len(date_scrape) == 1:
+#                 time = date_scrape[0]
+#             else:
+#                 date = date_scrape[0]
+#                 time = date_scrape[1]
+#                 date_datetime = convert_string_to_datetime(date)
+#             tick = file_name.split('_')[0]
+#             # twenty_four_hour_time = convert24(time).replace('PM', '')
+#             news_list.append([tick, date_datetime, time, text])
+#         except AttributeError:
+#             continue
+
+
+for ticker in tickers: 
+    yahooInfo = yf.Ticker(str(ticker))
+    openValue = yahooInfo.info['open']
+    closeValue = yahooInfo.info['currentPrice']
+    for article in yahooInfo.news:
+        date = datetime.fromtimestamp(article['providerPublishTime'])
+        date = date.strftime('%Y-%m-%d 00:00:00 %I:%M%p')
+        news_list.append([ticker, date[0:10], date[20:28], article['title']])
+
 
 # Sentiment Analysis of recent Stock News
 vader = SentimentIntensityAnalyzer()
@@ -94,5 +103,3 @@ news_df['date'] = pd.to_datetime(news_df.date).dt.date
 mean_scores = news_df.groupby(['ticker', 'date']).mean()
 email_content = mean_scores.compound.to_string()
 print(email_content)
-
-
